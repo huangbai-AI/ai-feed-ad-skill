@@ -1,0 +1,23 @@
+{
+  "project_name": "portable_blender_demo",
+  "created_at": "2026-06-13T00:00:00+08:00",
+  "status": "draft",
+  "current_step": "product_brief",
+  "product": {
+    "product_name": "便携榨汁杯",
+    "category": "厨房小电器",
+    "target_audience": "上班族、健身人群、宿舍用户",
+    "selling_points": [
+      "随身携带",
+      "一键清洗",
+      "小体积不占空间"
+    ]
+  },
+  "references": [],
+  "dreamina_tasks": [],
+  "loop_runs": [],
+  "schedule": {
+    "enabled": false,
+    "interval_minutes": 15
+  }
+}
