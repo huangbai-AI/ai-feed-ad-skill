@@ -16,6 +16,8 @@
   "references": [],
   "dreamina_tasks": [],
   "loop_runs": [],
+  "workflow_runs": [],
+  "batch_runs": [],
   "schedule": {
     "enabled": false,
     "interval_minutes": 15

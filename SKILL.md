@@ -20,6 +20,7 @@ description: Create product feed-ad workflows for AI agents. Use when the user w
 7. 检查结果，不合格就改提示词重试
 8. 启用 Loop 时，自动复盘、重写失败镜头、限制重试次数
 9. 启用定时任务时，按固定间隔检查项目并继续推进
+10. 样片通过后，批量生成候选并评分择优
 
 不要把这个 Skill 用于短剧、漫剧或剧情长内容。
 
@@ -29,6 +30,8 @@ description: Create product feed-ad workflows for AI agents. Use when the user w
 - 默认先做 1 条样片，用户确认后再批量生成。
 - 默认优先使用低成本模型，符合 Seedance 2.0 mini / fast 适合批量生产的定位。
 - Loop 默认最多重试 3 次；定时任务默认 15 分钟检查一次，但必须由用户明确要求才开启。
+- 支持 `stop_at` 分阶段运行。用户只要前半段时，必须停在指定阶段，不要擅自生成。
+- 批量候选默认 9 个，评分后只精修 1-3 个最高分版本，避免平均消耗生成额度。
 - 只处理公开可访问或用户授权的素材。不要绕过登录、付费、加密或平台下载限制。
 - 参考广告只学习结构、节奏、卖点表达和镜头语言，不复制原文案、品牌素材或人物形象。
 
@@ -65,6 +68,31 @@ description: Create product feed-ad workflows for AI agents. Use when the user w
    - 本地视频可以用 `scripts/transcribe.py` 转写。
 
 ## 执行流程
+
+### 0. 分阶段运行
+
+当用户要求“先做到某一步”“只跑生成前流程”“只生成提示词”“先不要调用即梦”等，读取 `templates/stage_control.md`。
+
+可用脚本：
+
+```bash
+python scripts/workflow_stage.py plan --project . --stop-at shot_prompt
+python scripts/workflow_stage.py mark --project . --stage product_brief --status complete
+python scripts/workflow_stage.py next --project .
+python scripts/workflow_stage.py status --project .
+```
+
+常用停止点：
+
+- `reference_search`：只找同类参考广告。
+- `reference_analysis`：只拆解参考广告。
+- `ad_script`：只写广告脚本。
+- `shot_prompt`：只写即梦镜头提示词。
+- `dreamina_generate`：只生成样片，不自动 Loop。
+- `quality_check`：只做质量检测，等人工确认。
+- `batch_variants`：样片通过后，批量候选并择优。
+
+到达 `stop_at` 后必须停下，不继续调用下一阶段。
 
 ### 1. 商品资料
 
@@ -235,6 +263,33 @@ python scripts/scheduler.py --project-root /path/to/projects --interval-minutes 
 python scripts/scheduler.py --project . --interval-minutes 15 --submit-loop --max-retries 3
 ```
 
+### 10. 批量候选和择优
+
+样片通过后，读取 `templates/batch_variants.md`。批量不是简单复制，而是围绕可测试变量做候选：
+
+- 开场钩子
+- 主卖点角度
+- 人物表达方式
+- 结尾行动引导
+
+默认先生成 9 个候选。看完候选视频后，按这些维度评分：
+
+- 前 3 秒钩子
+- 商品清晰度
+- 单一卖点
+- 信息流广告感
+- 行动引导
+- 合规风险
+
+可用脚本：
+
+```bash
+python scripts/batch_variants.py plan --project . --count 9
+python scripts/batch_variants.py rank --project .
+```
+
+择优后，只继续精修排名最高的 1-3 个候选。
+
 ## 项目目录
 
 每个商品项目使用固定结构：
@@ -249,6 +304,8 @@ shots/
 dreamina_tasks/
 loop_runs/
 schedule_runs/
+workflow_runs/
+batch_runs/
 outputs/
 project.json
 ```
@@ -264,5 +321,7 @@ project.json
 - `scripts/quality_check.py`：生成质量检查表，便于人工或 Agent 逐项复核。
 - `scripts/loop_controller.py`：读取质量检查结果，生成失败镜头重试提示词，可选自动提交即梦。
 - `scripts/scheduler.py`：按固定间隔检查一个或多个商品项目，必要时触发 Loop。
+- `scripts/workflow_stage.py`：管理分阶段运行，支持 `stop_at`。
+- `scripts/batch_variants.py`：规划批量候选、生成候选提示词、评分排序。
 
 脚本是辅助工具；复杂判断仍由 Agent 读取模板后完成。

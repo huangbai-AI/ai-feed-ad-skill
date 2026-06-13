@@ -20,6 +20,8 @@ PROJECT_DIRS = [
     "dreamina_tasks",
     "loop_runs",
     "schedule_runs",
+    "workflow_runs",
+    "batch_runs",
     "outputs",
 ]
 
@@ -62,6 +64,8 @@ def init_project(args: argparse.Namespace) -> None:
     state.setdefault("shots", [])
     state.setdefault("dreamina_tasks", [])
     state.setdefault("loop_runs", [])
+    state.setdefault("workflow_runs", [])
+    state.setdefault("batch_runs", [])
     state.setdefault("schedule", {"enabled": False, "interval_minutes": 15})
 
     if args.product_name:
