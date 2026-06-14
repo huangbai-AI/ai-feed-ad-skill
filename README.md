@@ -2,6 +2,26 @@
 
 这个 Skill 用来把商品资料变成信息流广告工作流：搜索参考广告、拆解脚本、重写原创广告、生成即梦提示词，并支持 Loop 复盘和定时跑批。
 
+## 一条命令安装
+
+如果仓库是公开的：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/huangbai-AI/ai-feed-ad-skill/main/install.sh | bash
+```
+
+如果仓库还是私有的，需要对方先有仓库权限并登录 GitHub：
+
+```bash
+tmp="$(mktemp -d)" && gh repo clone huangbai-AI/ai-feed-ad-skill "$tmp/ai-feed-ad-skill" -- --depth 1 && bash "$tmp/ai-feed-ad-skill/install.sh"
+```
+
+默认安装到：
+
+```text
+~/.codex/skills/ai-feed-ad-skill
+```
+
 ## 核心流程
 
 1. 整理商品资料
