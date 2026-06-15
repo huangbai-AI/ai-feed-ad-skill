@@ -13,6 +13,8 @@ from typing import Any
 PROJECT_DIRS = [
     "product",
     "references",
+    "videos",
+    "frames",
     "transcripts",
     "analysis",
     "scripts",

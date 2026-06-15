@@ -13,6 +13,7 @@ from typing import Any
 STAGES = [
     "product_brief",
     "reference_search",
+    "hot_video_search",
     "reference_analysis",
     "ad_script",
     "shot_prompt",
@@ -25,6 +26,7 @@ STAGES = [
 STAGE_LABELS = {
     "product_brief": "整理商品资料",
     "reference_search": "搜索同类参考广告",
+    "hot_video_search": "搜索同类高赞视频并排序",
     "reference_analysis": "拆解参考广告",
     "ad_script": "重写原创广告脚本",
     "shot_prompt": "拆镜头和即梦提示词",
