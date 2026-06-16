@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import itertools
 import json
 from datetime import datetime, timezone
 from pathlib import Path
@@ -18,6 +17,20 @@ HOOK_PATTERNS = [
     ("test", "测评挑战", "用一个小测试证明商品的主卖点"),
     ("offer", "优惠刺激", "把价格、优惠或限时权益放到结尾强化转化"),
 ]
+
+PRODUCTION_SUBTYPES = [
+    ("drama_emotional_turn", "剧情广告", "情感反转剧情", "LD-01", "情绪低点、商品触发变化、新状态定格"),
+    ("brand_product_hero", "品牌大片", "产品英雄广告", "LV-05", "产品极近特写、感官卖点、正面定格"),
+    ("brand_tv_spot", "品牌大片", "电影感 TV 广告", "LV-06", "强氛围世界观、角色体验、产品定格"),
+    ("brand_lifestyle_follow", "品牌大片", "时尚生活方式跟拍", "LV-08", "真人跟拍、商品细节、生活方式定格"),
+    ("creator_handheld_ugc", "达人带货", "UGC 手持口播展示", "LV-01", "真人自拍、指出细节、推荐理由"),
+    ("creator_unboxing_reveal", "达人带货", "开箱揭晓", "LV-02", "包装开场、取出商品、同框定格"),
+    ("creator_use_case_proof", "达人带货", "使用场景证明", "LV-03", "痛点场景、使用动作、结果证明"),
+    ("creator_tryon_change", "达人带货", "试穿前后变化", "LV-04", "未上身、上身变化、细节判断"),
+    ("creator_asmr_unbox", "达人带货", "俯拍 ASMR 开箱", "LV-07", "俯拍开盒、取出细节、仪式感定格"),
+]
+
+SOURCE_IDS = {item[3] for item in PRODUCTION_SUBTYPES}
 
 PERSONA_PATTERNS = [
     ("real_talk", "真人口播", "真人自然口播，语气像朋友推荐"),
@@ -89,14 +102,16 @@ def build_variant_prompt(product: dict[str, Any], variant: dict[str, Any]) -> st
     name = product_name(product)
     audience = target_audience(product)
     return (
-        f"竖屏 9:16 信息流广告，商品是{name}。\n"
+        f"竖屏 9:16 AI 带货广告，商品是{name}。\n"
         f"目标人群：{audience}。\n"
-        f"广告方向：{variant['angle']}。\n"
+        f"生产类型：{variant['production_type']} / {variant['production_subtype']}。\n"
+        f"子类型结构：{variant['subtype_rule']}。\n"
+        f"主卖点角度：{variant['selling_point']}。\n"
         f"开场钩子：{variant['hook']}。\n"
         f"人物表达：{variant['persona']}。\n"
         f"行动引导：{variant['cta']}。\n"
-        "画面要求：第一秒必须出现痛点、结果或反差；商品清楚出现；只讲一个主卖点；字幕短；结尾有明确点击或领取动作。\n"
-        "负面要求：不要夸大功效，不要医疗化表达，不要品牌大片感，不要改变商品外观。\n"
+        "画面要求：第一秒必须出现商品、结果、冲突或主视觉；商品清楚出现；只讲一个主卖点；字幕短；结尾有明确点击、收藏、领券或下单动作。\n"
+        "负面要求：不要夸大功效，不要医疗化表达，不要改变商品外观，不要复制真实影视剧角色、台词、音乐或服化道。\n"
     )
 
 
@@ -108,19 +123,27 @@ def command_plan(args: argparse.Namespace) -> None:
 
     product = state.get("product") or {}
     points = selling_points(product)
-    combinations = itertools.product(points, HOOK_PATTERNS, PERSONA_PATTERNS, CTA_PATTERNS)
 
     variants: list[dict[str, Any]] = []
     variant_dir = project / "shots" / "variants"
     variant_dir.mkdir(parents=True, exist_ok=True)
 
-    for index, (point, hook, persona, cta) in enumerate(combinations, start=1):
-        if index > args.count:
-            break
+    for index in range(1, args.count + 1):
+        subtype = PRODUCTION_SUBTYPES[(index - 1) % len(PRODUCTION_SUBTYPES)]
+        point = points[(index - 1) % len(points)]
+        hook = HOOK_PATTERNS[(index - 1) % len(HOOK_PATTERNS)]
+        persona = PERSONA_PATTERNS[(index - 1) % len(PERSONA_PATTERNS)]
+        cta = CTA_PATTERNS[(index - 1) % len(CTA_PATTERNS)]
         variant_id = f"v{index:03d}"
         variant = {
             "variant_id": variant_id,
-            "angle": point,
+            "production_type": subtype[1],
+            "production_subtype": subtype[2],
+            "subtype_type": subtype[0],
+            "source_id": subtype[3],
+            "source_id_valid": True,
+            "subtype_rule": subtype[4],
+            "selling_point": point,
             "hook_type": hook[0],
             "hook": f"{hook[1]}：{hook[2]}",
             "persona_type": persona[0],
@@ -206,7 +229,10 @@ def command_rank(args: argparse.Namespace) -> None:
     for variant in variants:
         item = dict(variant)
         scores = item.get("scores") or {}
+        item["source_id_valid"] = item.get("source_id") in SOURCE_IDS
         item["total_score"] = total_score(scores)
+        if not item["source_id_valid"]:
+            item["total_score"] = -999
         item["score_missing"] = [key for key in [*SCORE_WEIGHTS.keys(), "policy_risk"] if scores.get(key) in {None, ""}]
         ranked.append(item)
 

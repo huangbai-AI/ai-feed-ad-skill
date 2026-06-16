@@ -12,28 +12,35 @@ from typing import Any
 
 STAGES = [
     "product_brief",
-    "reference_search",
-    "hot_video_search",
-    "reference_analysis",
+    "production_type",
     "ad_script",
     "shot_prompt",
     "dreamina_generate",
+    "async_query",
     "quality_check",
     "loop_check",
     "batch_variants",
 ]
 
+OPTIONAL_STAGES = [
+    "reference_search",
+    "hot_video_search",
+    "reference_analysis",
+]
+
 STAGE_LABELS = {
     "product_brief": "整理商品资料",
-    "reference_search": "搜索同类参考广告",
-    "hot_video_search": "搜索同类高赞视频并排序",
-    "reference_analysis": "拆解参考广告",
+    "production_type": "选择带货广告生产类型",
     "ad_script": "重写原创广告脚本",
     "shot_prompt": "拆镜头和即梦提示词",
     "dreamina_generate": "调用即梦生成样片",
+    "async_query": "异步查询生成任务",
     "quality_check": "质量检测",
     "loop_check": "Loop 复盘和重试",
     "batch_variants": "批量生成候选并择优",
+    "reference_search": "搜索同类参考广告",
+    "hot_video_search": "搜索同类高赞视频并排序",
+    "reference_analysis": "拆解参考广告",
 }
 
 
@@ -61,8 +68,9 @@ def project_state_path(project: Path) -> Path:
 
 
 def assert_stage(stage: str) -> None:
-    if stage not in STAGES:
-        allowed = ", ".join(STAGES)
+    allowed_stages = STAGES + OPTIONAL_STAGES
+    if stage not in allowed_stages:
+        allowed = ", ".join(allowed_stages)
         raise SystemExit(f"unknown stage: {stage}; allowed: {allowed}")
 
 
@@ -121,13 +129,25 @@ def command_mark(args: argparse.Namespace) -> None:
         runs.append({"created_at": now_iso(), "stop_at": state.get("stop_at", args.stage), "stages": plan_stages(state.get("stop_at", args.stage))})
 
     latest = runs[-1]
+    found = False
     for item in latest.get("stages", []):
         if item.get("stage") == args.stage:
             item["status"] = args.status
             item["updated_at"] = now_iso()
             if args.note:
                 item["note"] = args.note
+            found = True
             break
+    if not found:
+        latest.setdefault("stages", []).append(
+            {
+                "stage": args.stage,
+                "label": STAGE_LABELS.get(args.stage, args.stage),
+                "status": args.status,
+                "updated_at": now_iso(),
+                **({"note": args.note} if args.note else {}),
+            }
+        )
 
     state["current_step"] = args.stage
     state["status"] = "blocked" if args.status == "blocked" else "running"
@@ -156,6 +176,10 @@ def command_next(args: argparse.Namespace) -> None:
 
     if current == stop_at and state.get("status") in {"stopped_at_stage", "complete"}:
         print(json.dumps({"next_stage": "", "note": f"已停在 {stop_at}"}, ensure_ascii=False, indent=2))
+        return
+
+    if current in OPTIONAL_STAGES:
+        print(json.dumps({"next_stage": "", "note": f"{current} 是可选参考阶段，默认流程不从这里自动推进"}, ensure_ascii=False, indent=2))
         return
 
     current_index = STAGES.index(current)
