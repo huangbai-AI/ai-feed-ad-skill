@@ -1,17 +1,16 @@
 # 批量候选和择优模板
 
-样片通过后，再进入批量候选。不要一次性随机生成很多条，而是围绕“子类型、钩子、主卖点、表达方式、行动引导”做可比较的候选。
+样片通过后，再进入批量候选。候选只做可比较的方向变化，不做复杂评分。
 
 默认变体必须从 `templates/reference_script_library.md` 的正式小类里选，不允许使用待反推小类。
 
-默认变体：
+默认先生成 6-9 个候选。看完候选后，只填写下面五个字段：
 
-- 3 个开场钩子
-- 3-9 个有来源编号的生产小类
-- 2 个主卖点角度
-- 2 种结尾行动引导
-
-默认先生成 9 个候选，跑完后打分排序，选出 1-3 个继续精修。
+- `usable`：能否继续精修或投放测试。
+- `major_defect`：是否存在重大错误。
+- `product_consistent`：商品颜色、形状、包装、材质是否一致。
+- `human_consistent`：人物是否前后一致，身体结构是否正常。
+- `manual_pick`：人工是否选中。
 
 输出格式：
 
@@ -29,46 +28,30 @@
       "shots_to_regenerate": [],
       "expected_use": "",
       "prompt_file": "",
-      "scores": {
-        "hook": null,
-        "product_visibility": null,
-        "selling_point": null,
-        "feed_ad_feeling": null,
-        "cta": null,
-        "policy_risk": null
+      "review": {
+        "usable": null,
+        "major_defect": null,
+        "product_consistent": null,
+        "human_consistent": null,
+        "manual_pick": null,
+        "notes": ""
       }
     }
   ]
 }
 ```
 
-## 评分规则
+择优规则：
 
-- `hook`：前 3 秒是否有痛点、结果或反差。
-- `product_visibility`：商品是否清楚出现，外观是否一致。
-- `selling_point`：是否只讲一个主卖点。
-- `feed_ad_feeling`：是否像真实信息流广告。
-- `cta`：行动引导是否清楚。
-- `policy_risk`：风险分，越高越差。
-- `source_id_valid`：是否能在 `reference_script_library.md` 中找到对应来源编号。找不到直接淘汰。
-
-总分：
-
-```text
-hook * 0.25
-+ product_visibility * 0.25
-+ selling_point * 0.20
-+ feed_ad_feeling * 0.20
-+ cta * 0.10
-- policy_risk * 0.30
-```
+- `manual_pick=true` 且没有重大错误，优先入选。
+- 没有人工选择时，选 `usable=true`、`major_defect=false`、`product_consistent=true`、`human_consistent=true` 的候选。
+- `source_id` 找不到真实参考脚本来源时直接淘汰。
+- 有重大错误的候选不进入精修。
 
 ## 执行
 
 ```bash
 python scripts/batch_variants.py plan --project . --count 9
-# 人工或 Agent 看完候选视频后，填写 analysis/batch_variants.json 里的 scores
+# 人工或 Agent 看完候选视频后，填写 analysis/batch_variants.json 里的 review
 python scripts/batch_variants.py rank --project .
 ```
-
-择优后，只继续精修分数最高的 1-3 个候选，不要平均消耗生成额度。

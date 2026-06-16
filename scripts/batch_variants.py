@@ -43,14 +43,7 @@ CTA_PATTERNS = [
     ("claim_offer", "领取优惠", "结尾提示领取当前优惠"),
     ("try_now", "现在试试", "结尾提示马上试试或下单"),
 ]
-
-SCORE_WEIGHTS = {
-    "hook": 0.25,
-    "product_visibility": 0.25,
-    "selling_point": 0.20,
-    "feed_ad_feeling": 0.20,
-    "cta": 0.10,
-}
+REVIEW_FIELDS = ["usable", "major_defect", "product_consistent", "human_consistent", "manual_pick"]
 
 
 def now_iso() -> str:
@@ -154,13 +147,13 @@ def command_plan(args: argparse.Namespace) -> None:
             "shots_to_regenerate": ["shot_001"],
             "expected_use": "用于批量测试开场钩子和转化话术",
             "prompt_file": "",
-            "scores": {
-                "hook": None,
-                "product_visibility": None,
-                "selling_point": None,
-                "feed_ad_feeling": None,
-                "cta": None,
-                "policy_risk": None,
+            "review": {
+                "usable": None,
+                "major_defect": None,
+                "product_consistent": None,
+                "human_consistent": None,
+                "manual_pick": None,
+                "notes": "",
             },
         }
         prompt_path = variant_dir / f"{variant_id}_prompt.txt"
@@ -173,10 +166,13 @@ def command_plan(args: argparse.Namespace) -> None:
         "project": str(project),
         "product": product,
         "variant_count": len(variants),
-        "score_rule": {
-            "scale": "0-10，分数越高越好；policy_risk 是风险分，越高风险越大",
-            "weights": SCORE_WEIGHTS,
-            "policy_risk_penalty": "policy_risk * 0.30",
+        "review_rule": {
+            "fields": REVIEW_FIELDS,
+            "usable": "能直接作为候选继续精修",
+            "major_defect": "有重大错误则不能入选",
+            "product_consistent": "商品颜色、形状、包装、材质一致",
+            "human_consistent": "人物前后一致且没有身体结构问题",
+            "manual_pick": "人工最终选中",
         },
         "variants": variants,
     }
@@ -200,21 +196,36 @@ def command_plan(args: argparse.Namespace) -> None:
     print(json.dumps({"project": str(project), "variants_file": str(output), "variant_count": len(variants)}, ensure_ascii=False, indent=2))
 
 
-def number(value: Any) -> float:
-    if value is None or value == "":
-        return 0.0
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return 0.0
+def bool_value(value: Any) -> bool | None:
+    if isinstance(value, bool):
+        return value
+    raw = str(value).strip().lower()
+    if raw in {"true", "yes", "y", "1", "是", "通过", "可用", "选中"}:
+        return True
+    if raw in {"false", "no", "n", "0", "否", "不通过", "不可用", "未选"}:
+        return False
+    return None
 
 
-def total_score(scores: dict[str, Any]) -> float:
-    total = 0.0
-    for key, weight in SCORE_WEIGHTS.items():
-        total += number(scores.get(key)) * weight
-    total -= number(scores.get("policy_risk")) * 0.30
-    return round(total, 2)
+def review_status(item: dict[str, Any]) -> tuple[str, int]:
+    if not item.get("source_id_valid"):
+        return "invalid_source", 0
+    review = item.get("review") or {}
+    usable = bool_value(review.get("usable"))
+    major_defect = bool_value(review.get("major_defect"))
+    product_consistent = bool_value(review.get("product_consistent"))
+    human_consistent = bool_value(review.get("human_consistent"))
+    manual_pick = bool_value(review.get("manual_pick"))
+
+    if major_defect is True:
+        return "major_defect", 1
+    if product_consistent is False or human_consistent is False:
+        return "inconsistent", 1
+    if manual_pick is True:
+        return "manual_pick", 4
+    if usable is True and major_defect is False and product_consistent is True and human_consistent is True:
+        return "usable", 3
+    return "needs_review", 2
 
 
 def command_rank(args: argparse.Namespace) -> None:
@@ -226,18 +237,21 @@ def command_rank(args: argparse.Namespace) -> None:
         raise SystemExit(f"no variants found: {variants_path}")
 
     ranked: list[dict[str, Any]] = []
-    for variant in variants:
+    for order, variant in enumerate(variants):
         item = dict(variant)
-        scores = item.get("scores") or {}
         item["source_id_valid"] = item.get("source_id") in SOURCE_IDS
-        item["total_score"] = total_score(scores)
-        if not item["source_id_valid"]:
-            item["total_score"] = -999
-        item["score_missing"] = [key for key in [*SCORE_WEIGHTS.keys(), "policy_risk"] if scores.get(key) in {None, ""}]
+        review = item.get("review") or {}
+        status, priority = review_status(item)
+        item["review_status"] = status
+        item["review_priority"] = priority
+        item["review_missing"] = [key for key in REVIEW_FIELDS if bool_value(review.get(key)) is None]
+        item["_order"] = order
         ranked.append(item)
 
-    ranked.sort(key=lambda item: item["total_score"], reverse=True)
-    winner = ranked[0] if ranked else None
+    ranked.sort(key=lambda item: (item["review_priority"], -item["_order"]), reverse=True)
+    winner = next((item for item in ranked if item["review_status"] in {"manual_pick", "usable"}), None)
+    for item in ranked:
+        item.pop("_order", None)
     result = {
         "created_at": now_iso(),
         "project": str(project),
@@ -257,7 +271,7 @@ def command_rank(args: argparse.Namespace) -> None:
                 "type": "rank",
                 "file": str(output),
                 "winner": winner.get("variant_id") if winner else "",
-                "winner_score": winner.get("total_score") if winner else None,
+                "winner_status": winner.get("review_status") if winner else "",
             }
         )
         state["selected_variant"] = winner.get("variant_id") if winner else ""

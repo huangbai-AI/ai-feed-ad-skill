@@ -19,12 +19,12 @@ STAGES = [
     "async_query",
     "quality_check",
     "loop_check",
+    "result_report",
     "batch_variants",
 ]
 
 OPTIONAL_STAGES = [
     "reference_search",
-    "hot_video_search",
     "reference_analysis",
 ]
 
@@ -35,11 +35,11 @@ STAGE_LABELS = {
     "shot_prompt": "拆镜头和即梦提示词",
     "dreamina_generate": "调用即梦生成样片",
     "async_query": "异步查询生成任务",
-    "quality_check": "质量检测",
-    "loop_check": "Loop 复盘和重试",
+    "quality_check": "重大错误检测",
+    "loop_check": "Loop 重大错误重试",
+    "result_report": "生成结果报告",
     "batch_variants": "批量生成候选并择优",
     "reference_search": "搜索同类参考广告",
-    "hot_video_search": "搜索同类高赞视频并排序",
     "reference_analysis": "拆解参考广告",
 }
 

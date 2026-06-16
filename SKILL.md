@@ -9,7 +9,7 @@ description: Create product feed-ad workflows for AI agents. Use when the user w
 
 把“商品图 + 商品信息 + 可选参考素材”变成可直接交给小云雀 / 即梦 / Seedance 的带货广告提示词和样片任务。
 
-默认不再走平台抓取。抓取慢且不稳定，只在用户明确要求“搜索参考 / 高赞视频 / 爆款链接”时才启用。
+默认不走平台抓取。搜索慢且不稳定，只在用户明确要求“搜索参考素材”时才启用。
 
 ## 默认流程
 
@@ -20,8 +20,10 @@ description: Create product feed-ad workflows for AI agents. Use when the user w
 5. 提交生成：优先 `dreamina multimodal2video`，模型默认 `seedance2.0fast`。
 6. 记录异步任务：提交成功后写入 `dreamina_tasks/` 和 `project.json`。
 7. 查询结果：生成排队时只记录 `Queueing/querying`，不要反复提交。
-8. 结果出来后再质检：读取 `templates/quality_check.md`。
-9. 用户要批量时：读取 `templates/batch_variants.md`，围绕不同钩子和生产类型出候选。
+8. 结果出来后做重大错误检测：读取 `templates/quality_check.md`。
+9. 如需 Loop：只针对重大错误读取 `templates/loop_check.md` 并生成重试提示词。
+10. 生成结果报告：运行 `scripts/result_report.py`。
+11. 用户要批量时：读取 `templates/batch_variants.md`，出候选并用简单人工字段择优。
 
 ## 3 大类 + 真实依据小类库
 
@@ -93,7 +95,6 @@ description: Create product feed-ad workflows for AI agents. Use when the user w
 只有用户明确要求搜索时，才读取：
 
 - `templates/reference_search.md`
-- `templates/hot_video_search.md`
 - `templates/reference_analysis.md`
 
 如果搜索失败、平台要求登录、下载慢或队列不稳定，不要阻塞主流程；直接回到“生产类型 + 系统提示词 + 模板生成”。
@@ -125,12 +126,13 @@ python3 scripts/dreamina_generate.py query --project . --submit-id <id>
 - `dreamina_generate`
 - `async_query`
 - `quality_check`
+- `loop_check`
+- `result_report`
 - `batch_variants`
 
 可选阶段，仅用户明确要求参考搜索时使用：
 
 - `reference_search`
-- `hot_video_search`
 - `reference_analysis`
 
 ## 项目目录
@@ -163,5 +165,6 @@ project.json
 - `templates/shot_prompt.md`：即梦提示词结构。
 - `scripts/dreamina_generate.py`：提交和查询即梦任务。
 - `scripts/workflow_stage.py`：分阶段状态。
-- `scripts/quality_check.py`：质检表。
-- `scripts/batch_variants.py`：批量候选和排序。
+- `scripts/quality_check.py`：重大错误检测表。
+- `scripts/result_report.py`：结果报告。
+- `scripts/batch_variants.py`：批量候选和简单择优。

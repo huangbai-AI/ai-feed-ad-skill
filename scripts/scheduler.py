@@ -147,13 +147,13 @@ def run_project(project: Path, args: argparse.Namespace) -> dict[str, Any]:
     if quality_path:
         if already_processed_quality(state, quality_path):
             result["action"] = "waiting_for_new_result"
-            result["note"] = "这份质量检查已经处理过，等待新生成结果或新的质量检查。"
+            result["note"] = "这份重大错误检测已经处理过，等待新生成结果或新的检测文件。"
             return result
         result.update(run_loop_controller(project, quality_path, args))
         return result
 
     result["action"] = "waiting_for_agent"
-    result["note"] = "还没有质量检查表，定时任务只记录当前步骤，等 Agent 继续创作或生成。"
+    result["note"] = "还没有重大错误检测表，定时任务只记录当前步骤，等 Agent 继续创作或生成。"
     return result
 
 
