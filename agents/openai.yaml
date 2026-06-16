@@ -1,5 +1,5 @@
 interface:
-  display_name: "AI 信息流广告 Skill"
+  display_name: "AI Ads / AI 信息流广告"
   short_description: "商品图到信息流广告样片生成、参考拆解与即梦工作流"
   default_prompt: "使用 $ai-feed-ad-skill 将我的商品图和卖点生成 9:16 信息流广告样片。"
 policy:

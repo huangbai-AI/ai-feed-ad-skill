@@ -1,6 +1,6 @@
 ---
 name: ai-feed-ad-skill
-description: Create product feed-ad workflows for AI agents. Use when the user wants AI product ads, e-commerce short videos, Xioayunque/Dreamina/Seedance ad generation, product promotion scripts, influencer-style selling videos, drama selling ads, brand films, prompt templates, async generation tracking, loop-based quality checks, or batch ad variants. Do not use for short drama workflows unrelated to product selling.
+description: AI Ads skill for product feed-ad workflows. Use when the user asks for AI Ads, AI product ads, e-commerce short videos, Xiaoyunque/Dreamina/Seedance ad generation, product promotion scripts, influencer-style selling videos, drama selling ads, brand films, prompt templates, async generation tracking, loop-based quality checks, or batch ad variants. Do not use for short drama workflows unrelated to product selling.
 ---
 
 # AI 带货广告 Skill
@@ -25,6 +25,8 @@ description: Create product feed-ad workflows for AI agents. Use when the user w
 10. 生成结果报告：运行 `scripts/result_report.py`。
 11. 用户要批量时：读取 `templates/batch_variants.md`，出候选并用简单人工字段择优。
 
+如果用户给本地视频或要求“扒脚本 / 反推参考”，必须做多模态分析：抽关键帧、看字幕/画面文字、转写口播、整理镜头结构。不能只提取音频。
+
 ## 3 大类 + 真实依据小类库
 
 三类是一级分类，不是最终模板。每次创作必须继续选择一个有来源编号的小类，否则提示词会太泛，也容易变成瞎写。
@@ -38,10 +40,12 @@ description: Create product feed-ad workflows for AI agents. Use when the user w
 正式小类：
 
 - 情感反转剧情（LD-01）：低落情绪 + 商品触发状态变化 + 新场景定格。
+- 场景错位短剧反转（XQ-01）：强冲突 + 商品动作 + 场面反转 + 记忆点文案。
+- AI 工具能力展示（XQ-02）：创作难题 + 输入/生成过程 + 多结果证明 + 工具口号。
 
 待反推，不进默认库：
 
-- 宫廷斗心机、霸总、重生、武侠、宫斗等。飞书文档里出现过这些方向，但当前没有完成可用视频反推脚本。
+- 霸总、重生等具体风格名。宫廷、武侠、审讯、现代服务错位场景已归入 XQ-01，不再作为独立小类。
 
 ### 2. 品牌大片
 
@@ -52,6 +56,9 @@ description: Create product feed-ad workflows for AI agents. Use when the user w
 - 产品英雄广告（LV-05）：产品极近特写 + 感官卖点 + 正面定格。
 - 电影感 TV 广告（LV-06）：强氛围世界观 + 角色体验 + 产品定格。
 - 时尚生活方式跟拍（LV-08）：真人跟拍 + 商品细节 + 生活方式定格。
+- AI 工具能力展示（XQ-02）：创作难题 + 输入/生成过程 + 多结果证明 + 工具口号。
+- 运动性能品牌片（XQ-03）：运动动作 + 性能细节 + 训练氛围 + 品牌短句。
+- 科技配饰冷感品牌片（XQ-04）：极简空间 + 产品佩戴 + 冷感城市 + 正面定格。
 
 待反推，不进默认库：
 
@@ -68,10 +75,16 @@ description: Create product feed-ad workflows for AI agents. Use when the user w
 - 使用场景证明（LV-03）：痛点场景 + 使用动作 + 结果证明。
 - 试穿前后变化（LV-04）：未上身 + 上身变化 + 细节判断。
 - 俯拍 ASMR 开箱（LV-07）：俯拍开盒 + 取出细节 + 仪式感定格。
+- 食品口感连击种草（XQ-05）：场景痛点 + 商品名 + 口感特写连击 + 囤货理由。
+- 礼品心意开箱（XQ-06）：送礼对象 + 开箱惊喜 + 质感细节 + 心意理由。
+- 套装清单展示（XQ-07）：清单焦虑 + 逐件展示 + 齐全省心 + 情绪价值。
+- 智能小物场景连发（XQ-08）：高频麻烦 + 一键解决 + 多场景连发 + 便利收尾。
+- 成分背书促销（XQ-09）：人群需求 + 成分/工艺/规格 + 活动信息 + 合规 CTA。
+- 睡前仪式情绪种草（XQ-10）：情绪共鸣 + 睡前仪式 + 使用过程 + 温和状态变化。
 
 待反推，不进默认库：
 
-- 家居好物、穿搭单品、美妆护肤、休闲零食、数码配件、母婴用品、宠物用品。这些是飞书文档提到的赛道，不是已经反推完成的小类。
+- 家居好物、穿搭单品、美妆护肤、母婴用品、宠物用品。这些是赛道，不是已经反推完成的小类；食品、智能小物、美容仪、成分背书已有正式 XQ 小类。
 
 ## 爆款表达结构
 

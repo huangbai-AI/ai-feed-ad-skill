@@ -29,7 +29,7 @@
     },
     "fabricated_claim": {
       "result": "",
-      "notes": "编造价格、销量、认证、医疗功效"
+      "notes": "编造价格、销量、成分、产地、认证、活动、医疗功效"
     }
   },
   "problems": [],
@@ -48,5 +48,5 @@
 
 - 没有重大错误：`overall=pass`。
 - 有上述任一重大错误：`overall=retry`，并填写对应 `retry_targets`。
-- 商品事实、授权、医疗功效、价格销量无法确认：`overall=manual_review`。
+- 商品事实、授权、成分、产地、认证、医疗功效、价格销量无法确认：`overall=manual_review`。
 - 重试提示词只修失败点，保持原商品、人物、场景和脚本方向。

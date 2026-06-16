@@ -20,14 +20,24 @@ HOOK_PATTERNS = [
 
 PRODUCTION_SUBTYPES = [
     ("drama_emotional_turn", "剧情广告", "情感反转剧情", "LD-01", "情绪低点、商品触发变化、新状态定格"),
+    ("drama_scene_mismatch", "剧情广告", "场景错位短剧反转", "XQ-01", "强冲突、商品动作、场面反转、记忆点文案"),
+    ("ai_tool_capability", "剧情广告", "AI 工具能力展示", "XQ-02", "创作难题、输入生成过程、多结果证明、工具口号"),
     ("brand_product_hero", "品牌大片", "产品英雄广告", "LV-05", "产品极近特写、感官卖点、正面定格"),
     ("brand_tv_spot", "品牌大片", "电影感 TV 广告", "LV-06", "强氛围世界观、角色体验、产品定格"),
-    ("brand_lifestyle_follow", "品牌大片", "时尚生活方式跟拍", "LV-08", "真人跟拍、商品细节、生活方式定格"),
+    ("brand_sport_performance", "品牌大片", "运动性能品牌片", "XQ-03", "运动动作、性能细节、训练氛围、品牌短句"),
+    ("brand_tech_accessory", "品牌大片", "科技配饰冷感品牌片", "XQ-04", "极简空间、产品佩戴、冷感城市、正面定格"),
     ("creator_handheld_ugc", "达人带货", "UGC 手持口播展示", "LV-01", "真人自拍、指出细节、推荐理由"),
+    ("creator_food_sensory", "达人带货", "食品口感连击种草", "XQ-05", "场景痛点、商品名、口感特写连击、囤货理由"),
+    ("creator_gift_unbox", "达人带货", "礼品心意开箱", "XQ-06", "送礼对象、开箱惊喜、质感细节、心意理由"),
+    ("brand_lifestyle_follow", "品牌大片", "时尚生活方式跟拍", "LV-08", "真人跟拍、商品细节、生活方式定格"),
     ("creator_unboxing_reveal", "达人带货", "开箱揭晓", "LV-02", "包装开场、取出商品、同框定格"),
     ("creator_use_case_proof", "达人带货", "使用场景证明", "LV-03", "痛点场景、使用动作、结果证明"),
     ("creator_tryon_change", "达人带货", "试穿前后变化", "LV-04", "未上身、上身变化、细节判断"),
     ("creator_asmr_unbox", "达人带货", "俯拍 ASMR 开箱", "LV-07", "俯拍开盒、取出细节、仪式感定格"),
+    ("creator_kit_checklist", "达人带货", "套装清单展示", "XQ-07", "清单焦虑、逐件展示、齐全省心、情绪价值"),
+    ("creator_smart_scenarios", "达人带货", "智能小物场景连发", "XQ-08", "高频麻烦、一键解决、多场景连发、便利收尾"),
+    ("creator_ingredient_offer", "达人带货", "成分背书促销", "XQ-09", "人群需求、成分工艺规格、活动信息、合规 CTA"),
+    ("creator_sleep_ritual", "达人带货", "睡前仪式情绪种草", "XQ-10", "情绪共鸣、睡前仪式、使用过程、温和状态变化"),
 ]
 
 SOURCE_IDS = {item[3] for item in PRODUCTION_SUBTYPES}
